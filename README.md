@@ -52,6 +52,8 @@ routes/
 
 ## Example Code
 
+Full example laravel project: https://github.com/neokofg/podrabotka-backend
+
 ### Controller
 
 ```php
