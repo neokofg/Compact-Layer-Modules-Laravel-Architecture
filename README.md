@@ -162,7 +162,7 @@ class CompanyPutRequest extends FormRequest
     }
 }
 
-readonly class CompanyPutRequestDTO extend DataTransferObject
+readonly class CompanyPutRequestDTO extends DataTransferObject
 {
     public function __construct(
         public ?string $name = null,
