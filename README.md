@@ -33,13 +33,13 @@ Here's an example of the folder structure for a project using the CLM architectu
 app/
 ├── Modules/
 │ ├── Company/
-│ │ ├── Controllers/
-│ │ │ └── CompanyPutController.php
+│ │ ├── Managers/
+│ │ │ └── CompanyPutManager.php
 │ │ ├── Requests/
 │ │ │ └── CompanyPutRequest.php
 │ ├── User/
-│ │ ├── Controllers/
-│ │ │ └── UserPutController.php
+│ │ ├── Managers/
+│ │ │ └── UserPutManager.php
 │ │ ├── Requests/
 │ │ │ └── UserPutRequest.php
 ├── Models/
@@ -52,85 +52,86 @@ routes/
 
 ## Example Code
 
-Full example laravel project: https://github.com/neokofg/podrabotka-backend
-
 ### Controller
 
 ```php
-<?php declare(strict_types=1);
+<?php
 
-namespace App\Modules\Company\Controllers;
-
-use App\Models\Company;
-use App\Modules\Company\Requests\CompanyPutRequest;
-use App\Modules\Company\Requests\CompanyPutRequestDTO;
-use App\Presenters\JsonPresenter;
-use App\Services\StorageService;
+use App\Helpers\Presenters\JsonPresenter;
+use Exceptions\InvalidCredentialsException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Requests\UserAuthDTO;
+use Requests\UserAuthRequest;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
-class CompanyPutController
+class UserAuthController
 {
     public function __construct(
-        private CompanyPutUseCase $useCase,
+        private UserAuthUseCase $useCase,
         private JsonPresenter $presenter
     )
     {
     }
 
-    public function __invoke(CompanyPutRequest $request)
+    /**
+     * @throws Exception
+     */
+    public function __invoke(UserAuthRequest $request): JsonResponse
     {
         $DTO = $request->getValidated();
+
         $response = $this->useCase->execute($DTO);
+
         return $this->presenter->present($response);
     }
 }
 
-class CompanyPutUseCase
+class UserAuthUseCase
 {
     public function __construct(
-        private CompanyPutRepository $repository
+        private UserAuthRepository $repository
     )
     {
     }
 
-    public function execute(CompanyPutRequestDTO $DTO): array
+    /**
+     * @throws Exception
+     */
+    public function execute(UserAuthDTO $DTO): array
     {
         try {
             return DB::transaction(function () use ($DTO) {
                 return $this->repository->make($DTO);
             });
-        } catch (\Throwable $exception) {
-            throw new \Exception('Error during transaction', 0, $exception);
+        } catch (InvalidCredentialsException $exception) {
+            throw new Exception('Invalid credentials', Response::HTTP_FORBIDDEN, $exception);
+        } catch (Throwable $exception) {
+            throw new Exception('Service temporary unavailable', Response::HTTP_OK, $exception);
         }
     }
 }
 
-class CompanyPutRepository
+class UserAuthRepository
 {
-    public function __construct(
-        private Company $company,
-        private StorageService $service
-    )
+    public function __construct()
     {
     }
 
-    public function make(CompanyPutRequestDTO $DTO): array
+    /**
+     * @throws InvalidCredentialsException
+     */
+    public function make(UserAuthDTO $DTO): array
     {
-        $this->company = Company::find(Auth::user()->company_id);
-        $this->attachImage($DTO);
-        $this->company->update($DTO->toArray(['logo']));
-        return [
-            'message' => 'Successfully updated!'
-        ];
-    }
-
-    private function attachImage(CompanyPutRequestDTO $DTO)
-    {
-        if (isset($DTO->logo)) {
-            $url = $this->service->putOne($DTO->logo, 'logos/');
-            $this->company->avatar_url = $url;
-            $this->company->save();
+        if(Auth::attempt([$DTO->toArray()])){
+            return [
+                'success' => true,
+                'message' => 'User successfully logged in',
+                'token' => Auth::user()->createToken('auth-token')->plainTextToken,
+            ];
+        } else {
+            throw new InvalidCredentialsException();
         }
     }
 }
@@ -139,37 +140,39 @@ class CompanyPutRepository
 ```php
 <?php declare(strict_types=1);
 
-namespace App\Modules\Company\Requests;
+namespace Requests;
 
+use App\Helpers\DataTransferObject;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\UploadedFile;
 
-class CompanyPutRequest extends FormRequest
+class UserAuthRequest extends FormRequest
 {
     public function rules(): array
     {
         return [
-            'name' => 'string|max:30',
-            'logo' => 'file|mimes:jpeg,jpg,png,webp',
-            'description' => 'string|max:60',
-            'website_url' => 'string|url|max:120',
+            'email' => 'required|email',
+            'password' => 'required|string'
+            'example_parameter' => 'nullable|string'
         ];
     }
 
-    public function getValidated(): CompanyPutRequestDTO
+    public function getValidated(): UserAuthDTO
     {
-        return new CompanyPutRequestDTO(...$this->validated());
+        return new UserAuthDTO(
+            ...$this->validated()
+        );
     }
 }
 
-readonly class CompanyPutRequestDTO extends DataTransferObject
+readonly class UserAuthDTO extends DataTransferObject
 {
     public function __construct(
-        public ?string $name = null,
-        public ?UploadedFile $logo = null,
-        public ?string $description = null,
-        public ?string $website_url = null,
-    ) {}
+        public string $email,
+        public ?string $example_parameter = null
+        public string $password,
+    )
+    {
+    }
 }
 ```
 ## Installation
@@ -187,11 +190,11 @@ use App\Modules\Company\Controllers\CompanyPutController;
 
 Route::put('company', CompanyPutController::class);
 ```
-2. Create your modules in the `app/Modules` directory. Each module should have `Controllers` and `Requests` folders.
-3. Define your controllers, requests, and DTOs within their respective modules.
+2. Create your modules in the `app/Modules` directory. Each module should have `Managers` and `Requests` folders.
+3. Define your controllers, usecases, repositories, requests, and DTOs within their respective modules.
 
 ## Contributing
-I'm welcome contributions! Please follow these steps to contribute:
+I'm welcome to contributions! Please follow these steps to contribute:
 
 1. Fork the repository.
 2. Create a new branch for your feature or bugfix.
