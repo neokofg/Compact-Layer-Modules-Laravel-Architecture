@@ -1,6 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 use App\Helpers\Presenters\JsonPresenter;
+use Exceptions\InvalidCredentialsException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Requests\UserAuthDTO;
 use Requests\UserAuthRequest;
@@ -16,6 +18,9 @@ class UserAuthController
     {
     }
 
+    /**
+     * @throws Exception
+     */
     public function __invoke(UserAuthRequest $request): JsonResponse
     {
         $DTO = $request->getValidated();
@@ -34,12 +39,17 @@ class UserAuthUseCase
     {
     }
 
+    /**
+     * @throws Exception
+     */
     public function execute(UserAuthDTO $DTO): array
     {
         try {
             return DB::transaction(function () use ($DTO) {
                 return $this->repository->make($DTO);
             });
+        } catch (InvalidCredentialsException $exception) {
+            throw new Exception('Invalid credentials', Response::HTTP_FORBIDDEN, $exception);
         } catch (Throwable $exception) {
             throw new Exception('Service temporary unavailable', Response::HTTP_OK, $exception);
         }
@@ -52,8 +62,19 @@ class UserAuthRepository
     {
     }
 
+    /**
+     * @throws InvalidCredentialsException
+     */
     public function make(UserAuthDTO $DTO): array
     {
-
+        if(Auth::attempt([$DTO->toArray()])){
+            return [
+                'success' => true,
+                'message' => 'User successfully logged in',
+                'token' => Auth::user()->createToken('auth-token')->plainTextToken,
+            ];
+        } else {
+            throw new InvalidCredentialsException();
+        }
     }
 }

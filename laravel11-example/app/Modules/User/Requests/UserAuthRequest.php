@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Requests;
 
@@ -10,8 +10,8 @@ class UserAuthRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email',
-            'password'
+            'email' => 'required|email',
+            'password' => 'required|string'
         ];
     }
 

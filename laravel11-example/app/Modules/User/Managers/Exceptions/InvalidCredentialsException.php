@@ -2,7 +2,7 @@
 
 namespace Exceptions;
 
-class InvalidCodeException extends \Exception
+class InvalidCredentialsException extends \Exception
 {
 
 }
