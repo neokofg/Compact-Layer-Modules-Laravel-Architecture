@@ -204,3 +204,9 @@ I'm welcome to contributions! Please follow these steps to contribute:
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for more information.
+
+## TODO
+
+- boilerplate
+- each module vendor can be customized
+- architecture cli for creating files
