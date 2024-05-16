@@ -168,7 +168,7 @@ readonly class UserAuthDTO extends DataTransferObject
 {
     public function __construct(
         public string $email,
-        public ?string $example_parameter = null
+        public ?string $example_parameter = null,
         public string $password,
     )
     {
