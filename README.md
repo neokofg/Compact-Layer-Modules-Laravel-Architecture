@@ -10,10 +10,9 @@ Welcome to the Compact Layer Modules Architecture repository! This architecture 
 4. [Example Code](#example-code)
    - [Controller](#controller)
    - [Request](#request)
-5. [Installation](#installation)
-6. [Usage](#usage)
-7. [Contributing](#contributing)
-8. [License](#license)
+5. [Installation and Usage](#installation-and-usage)
+6. [Contributing](#contributing)
+7. [License](#license)
 
 ## Introduction
 
@@ -56,6 +55,8 @@ routes/
 
 ```php
 <?php
+
+namespace App\Modules\UserAuth\Managers
 
 use App\Helpers\Presenters\JsonPresenter;
 use Exceptions\InvalidCredentialsException;
@@ -108,7 +109,7 @@ class UserAuthUseCase
         } catch (InvalidCredentialsException $exception) {
             throw new Exception('Invalid credentials', Response::HTTP_FORBIDDEN, $exception);
         } catch (Throwable $exception) {
-            throw new Exception('Service temporary unavailable', Response::HTTP_OK, $exception);
+            throw new Exception('Service temporary unavailable', Response::HTTP_SERVICE_UNAVAILABLE, $exception);
         }
     }
 }
@@ -140,7 +141,7 @@ class UserAuthRepository
 ```php
 <?php declare(strict_types=1);
 
-namespace Requests;
+namespace App\Modules\UserAuth\Requests;
 
 use App\Helpers\DataTransferObject;
 use Illuminate\Foundation\Http\FormRequest;
@@ -151,7 +152,7 @@ class UserAuthRequest extends FormRequest
     {
         return [
             'email' => 'required|email',
-            'password' => 'required|string'
+            'password' => 'required|string',
             'example_parameter' => 'nullable|string'
         ];
     }
@@ -175,23 +176,21 @@ readonly class UserAuthDTO extends DataTransferObject
     }
 }
 ```
-## Installation
+## Installation and Usage
 
 To install this architecture, follow these steps:
-
-WIP
-
-## Usage
-To use this architecture, follow these steps:
-
-1. Define your routes in routes/api.php:
-```php
-use App\Modules\Company\Controllers\CompanyPutController;
-
-Route::put('company', CompanyPutController::class);
+- Install fresh Laravel project
+- Remove `app\Http` folder
+- Install `clm-cli`
+```bash
+composer require neokofg/clm-cli
 ```
-2. Create your modules in the `app/Modules` directory. Each module should have `Managers` and `Requests` folders.
-3. Define your controllers, usecases, repositories, requests, and DTOs within their respective modules.
+- Create a `Manager` and `Request`
+```bash
+php artisan make:manager --model=User
+php artisan make:request --model=User
+```
+- Start making a business logic.
 
 ## Contributing
 I'm welcome to contributions! Please follow these steps to contribute:
@@ -209,4 +208,3 @@ This project is licensed under the MIT License. See the LICENSE file for more in
 
 - boilerplate
 - each module vendor can be customized
-- architecture cli for creating files
