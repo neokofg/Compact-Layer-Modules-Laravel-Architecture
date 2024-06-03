@@ -188,7 +188,7 @@ composer require neokofg/clm-cli
 - Create a `Manager` and `Request`
 ```bash
 php artisan make:manager --model=User
-php artisan make:request --model=User
+php artisan make:clm-request --model=User
 ```
 - Start making a business logic.
 
