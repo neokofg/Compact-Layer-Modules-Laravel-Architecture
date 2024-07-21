@@ -1,6 +1,6 @@
 # Compact Layer Modules Architecture
 
-Welcome to the Compact Layer Modules Architecture repository! This architecture is designed to be efficient, modular, and scalable, making it ideal for large projects. It aims to balance simplicity and functionality, ensuring that your code remains clean and maintainable even as your project grows.
+Welcome to the Compact Layer Modules Architecture repository! This architecture is designed to be fast and small. It aims to balance simplicity and functionality, ensuring that your code remains clean and maintainable.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ Welcome to the Compact Layer Modules Architecture repository! This architecture 
 
 ## Introduction
 
-The Compact Layer Modules (CLM) architecture offers a structured approach to building large-scale applications. Each module contains its own controllers, requests, and related logic, allowing for clear separation of concerns and easier management of dependencies.
+The Compact Layer Modules (CLM) architecture offers a structured approach to building applications. Each module contains its own controllers, requests, and related logic, allowing for clear separation of concerns and easier management of dependencies.
 
 ## Key Features
 
